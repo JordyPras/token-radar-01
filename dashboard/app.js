@@ -434,9 +434,49 @@
     if (state.selected) openDetail(state.selected);
   }
 
+  // Move the detail drawer one row up or down the board as currently sorted and
+  // filtered, opening the new row. With no row selected yet, start at the nearer end.
+  function moveSelection(step) {
+    var list = sortedRows(rows());
+    if (list.length === 0) return;
+    var at = -1;
+    for (var i = 0; i < list.length; i++) if (list[i].slug === state.selected) at = i;
+    var next = at < 0 ? (step > 0 ? 0 : list.length - 1) : Math.min(Math.max(at + step, 0), list.length - 1);
+    openDetail(list[next].slug);
+  }
+
+  // Copy the address of the board as it stands, filters and open row included, so a
+  // filtered view or one protocol's detail can be shared as a link. The address bar
+  // already carries the same hash; this only puts it on the clipboard.
+  function copyBoardLink() {
+    writeHash();
+    var url = window.location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).catch(function () { /* clipboard unavailable; the link stays in the address bar */ });
+    }
+  }
+
   readHash();
   render();
+  // Back and forward change the hash without reloading: reset the filters, re-read
+  // the hash and render, so the board follows the address instead of the old state.
+  window.addEventListener('hashchange', function () {
+    state.q = '';
+    state.category = 'all';
+    state.chain = 'all';
+    state.early = false;
+    state.watchlistOnly = false;
+    state.selected = null;
+    readHash();
+    render();
+  });
   window.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && dialog.open) dialog.close();
+    if (e.key === 'Escape' && dialog.open) { dialog.close(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'C' || e.key === 'c')) { e.preventDefault(); copyBoardLink(); return; }
+    if (dialog.open) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      moveSelection(e.key === 'ArrowDown' ? 1 : -1);
+    }
   });
 })();

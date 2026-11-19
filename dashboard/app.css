@@ -143,3 +143,18 @@ tbody tr[data-selected="true"] { background: color-mix(in srgb, var(--accent) 8%
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* Print: the board is the handout. Controls and the detail drawer stay on screen,
+   the table prints whole, and long rows may break across pages instead of clipping. */
+@media print {
+  .controls, .detail, .close { display: none !important; }
+  body { background: #fff; color: #111; }
+  .shell { max-width: none; padding: 0; }
+  .panel { break-inside: auto; border-color: #999; }
+  .table-wrap { overflow: visible; }
+  table { font-size: 11px; }
+  tr { break-inside: avoid; }
+  .bar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .model { break-before: page; }
+  a { color: #111; text-decoration: none; }
+}
