@@ -61,13 +61,17 @@ payments/cards, privacy, OTC, governance, BTC-backed assets, CeDeFi and chain pr
 addition to the starter's lending/CDP, DEX/yield, bridge, staking, perps, prediction,
 curator/allocator, stablecoin, RWA and insurance branches.
 
-## The dashboard (dashboard/, 37,752 bytes total — under the 64 KiB dossier text cap)
+## The dashboard (dashboard/, 40,163 bytes total — under the 64 KiB dossier text cap)
 
 - Sortable columns (rank/implied, name, TVL, 7d growth, age), search, category filter,
   **chain filter**, **Early finds** spotlight toggle (9 rows) and **Watchlist only** toggle.
 - Detail view per protocol: all five multipliers, a plain-language "why it ranks" line, the
   farm plan, and a recompute check — the page re-derives the row with the same five
   multipliers and says in plain text whether it matches the number `board.json` carries.
+- Keyboard and link navigation: Up/Down moves the detail drawer between rows, Ctrl/Cmd+
+  Shift+C copies the link to the board as it stands (filters and open row in the hash),
+  and back/forward re-reads the hash so the board follows the address. A print stylesheet
+  prints the board whole with the controls and drawer hidden.
 - Summary facts: watchlist coverage 40/40, rows scored, early rows, early finds, live set
   aside. Model panel states the full formula including breakout and breadth.
 - No network: no `http://` or `https://` string anywhere in the dashboard files.
@@ -95,23 +99,34 @@ All seven sealed-gate rows re-checked locally against RULES.txt:
 
 | Gate row | Result |
 |---|---|
-| dashboard_files | PASS — 3 files, 37,752 bytes (≤400 files, ≤4 MiB), index.html + .css + .js, no http/https |
+| dashboard_files | PASS — 3 files, 40,163 bytes (≤400 files, ≤4 MiB), index.html + .css + .js, no http/https |
 | board_file | PASS — 198 rows (100–4000), all slugs in snapshot, 280,232 bytes (≤8 MiB) |
 | sorted_by_value | PASS — ranks exactly 1..198, implied value never rises with rank |
 | coverage | PASS — watchlist 40/40, 0 missing |
 | farm_steps | PASS — every row 6 steps, each 20–600 chars |
 | screenshots | PASS — 3 images, 1440x900, 141–202 KiB each (≤512 KiB, long ≤1440, short ≥800) |
-| dossier_matches | PASS — `buildDossier` rebuilt from `out/` is byte-identical to `out/dossier.json` (703,347 bytes, ≤1.5 MiB) |
+| dossier_matches | PASS — `buildDossier` rebuilt from `out/` is byte-identical to `out/dossier.json` (705,817 bytes, ≤1.5 MiB) |
 
 Notes: `buildDossier` returns a Uint8Array — the byte comparison must go through
 `Buffer.from(...)`. The kit ships no local copy of the sealed scorer, so the rows above are
 checked against the RULES.txt text, not by running the scorer itself; the real gate runs at
 submit/check time.
 
+## Revision 2026-11-19 evening (parent session, before submit)
+
+`main.ts` was restructured into named steps (`readFlag`, `resolveSnapshotFile`,
+`loadSnapshot`, `writeJson`, `copyRegularFiles`, `checkScreenshots`, `checkWrittenBoard`,
+`fail`) with no behavior change: a fresh pipeline run produces byte-identical
+`board.json` and `data.js`, and a `dossier.json` that differs only in the dashboard file
+sizes. The dashboard gained keyboard row navigation, a copy-link shortcut, back/forward
+hash support and a print stylesheet; the rendered board is unchanged, so the three
+screenshots still show the same views.
+
 ## Files
 
 ```
-main.ts                  entrypoint (wires MODEL + MODEL_VERSION explicitly; prints model + counts)
+main.ts                  entrypoint (wires MODEL + MODEL_VERSION explicitly; validates the
+                       snapshot, the written board and the screenshots; prints model + counts)
 lib/model.ts             radar-2 model, board builder, farm plans, snapshot parsing, gate self-check
 vendor/makefun-board.ts  kit library, byte for byte the scorer's own copy (do not edit)
 dashboard/index.html     page shell
